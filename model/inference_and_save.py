@@ -4,6 +4,8 @@ import tensorflow as tf
 import cv2 as cv
 from lxml import etree as ET
 
+threshold = 0.6
+
 def inference(modelpath, imgpath):
     # Read the graph.
     with tf.gfile.GFile(os.path.join(modelpath, 'frozen_inference_graph.pb'), 'rb') as f:
@@ -36,7 +38,7 @@ def inference(modelpath, imgpath):
             label = str(int(out[3][0][i]) - 1) # Only works in ECC case, may add labelmap later
             score = float(out[1][0][i])
             bbox = [float(v) for v in out[2][0][i]]
-            if score > 0.6:
+            if score > threshold:
                 x = bbox[1] * cols
                 y = bbox[0] * rows
                 right = bbox[3] * cols
