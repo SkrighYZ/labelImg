@@ -1,4 +1,4 @@
-# LabelImg with Tensorflow Models
+# LabelImg with TensorFlow Models
 
 ## To Modify Model Configs
 model/inference_and_save.py contains the functions to run the inference graph and save xml label files.  
