@@ -7,6 +7,8 @@ import platform
 import re
 import sys
 import subprocess
+from shutil import copyfile
+from model import inference_and_save
 
 from functools import partial
 from collections import defaultdict
@@ -980,6 +982,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 self.mImgList.clear()
 
         if unicodeFilePath and os.path.exists(unicodeFilePath):
+
             if LabelFile.isLabelFile(unicodeFilePath):
                 try:
                     self.labelFile = LabelFile(unicodeFilePath)
@@ -1020,6 +1023,8 @@ class MainWindow(QMainWindow, WindowMixin):
             self.addRecentFile(self.filePath)
             self.toggleActions(True)
 
+            modelpath = os.path.join(os.getcwd(), 'model')
+
             # Label xml file and show bound box according to its filename
             # if self.usingPascalVocFormat is True:
             if self.defaultSaveDir is not None:
@@ -1028,9 +1033,17 @@ class MainWindow(QMainWindow, WindowMixin):
                 xmlPath = os.path.join(self.defaultSaveDir, basename + XML_EXT)
                 txtPath = os.path.join(self.defaultSaveDir, basename + TXT_EXT)
 
-                """Annotation file priority:
+                
+                # If does not exist, run detection
+                if not os.path.isfile(xmlPath):
+                    boxes, labels, shape = inference_and_save.inference(modelpath, filePath)
+                    inference_and_save.save_labelfile(filePath, xmlPath, boxes, labels, shape)
+
+                '''
+                Annotation file priority:
                 PascalXML > YOLO
-                """
+                '''
+
                 if os.path.isfile(xmlPath):
                     self.loadPascalXMLByFilename(xmlPath)
                 elif os.path.isfile(txtPath):
@@ -1038,6 +1051,13 @@ class MainWindow(QMainWindow, WindowMixin):
             else:
                 xmlPath = os.path.splitext(filePath)[0] + XML_EXT
                 txtPath = os.path.splitext(filePath)[0] + TXT_EXT
+
+                # If does not exist, run detection
+                if not os.path.isfile(xmlPath):
+                    boxes, labels, shape = inference_and_save.inference(modelpath, filePath)
+                    inference_and_save.save_labelfile(filePath, xmlPath, boxes, labels, shape)
+                
+
                 if os.path.isfile(xmlPath):
                     self.loadPascalXMLByFilename(xmlPath)
                 elif os.path.isfile(txtPath):
